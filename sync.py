@@ -49,8 +49,29 @@ class Sync:
         ]
         table_view(data)
 
+    def count_system_slots(self):
+        slots = defaultdict(dict)
+        codes = {"*": "con", "+": "sum", "!": "inv"}
+        datasource = {"hull": self.systems['hull']['slots'], **self.slots}
+
+        for syst, data in datasource.items():
+            for detail, dct in data.items():
+                for slotcount, value in dct.items():
+                    slots[codes[detail]+str(slotcount)][syst] = value if syst == 'hull' else -1*value
+        return slots
+
     def cmd_system_slots(self):
-        pass
+        slots = self.count_system_slots()
+        lst = [["Система"] + sorted(slots.keys())]
+        for syst in sorted(self.systems.keys(), key=lambda x: x!='hull'):
+            lst += [[node_names[syst]] + [slots[detail].get(syst,0) for detail in lst[0][1:]]]
+        lst += ["="]
+        lst += [["Итого"] + ["sum"]*(len(lst[0])-1)]
+        table_view(lst, free_space_right=1)
+        if any([sum(x.values()) < 0 for x in slots.values()]):
+            print("ВНИМАНИЕ! На корпусе не хватает слотов под детали для выбранных корректировок!")
+
+
 
     def cmd_system_vector(self, args):
         avail = list(self.freq_vectors.keys()) + ['all']

@@ -97,9 +97,9 @@ def table_view(data, free_space_right=4, free_space_left=1, column_separator="|"
                 ind = item.index("sum")
                 item[ind] = sum(
                     [x[ind] for x in data if isinstance(x, (tuple, list)) and isinstance(x[ind], (int, float))])
-            print(column_separator.join([" " * free_space_left + "{:<{x}}".format(item[i], x=x) for i, x in
-                                         enumerate(column_widths)]).format(*item))
-    list.index
+            print(column_separator.join(
+                [" " * free_space_left + "{:<{x}}".format(item[i], x=x - free_space_left) for i, x in
+                 enumerate(column_widths)]).format(*item))
 
 
 def get_vector_carno(vector):
