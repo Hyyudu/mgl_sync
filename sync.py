@@ -57,21 +57,26 @@ class Sync:
         for syst, data in datasource.items():
             for detail, dct in data.items():
                 for slotcount, value in dct.items():
-                    slots[codes[detail]+str(slotcount)][syst] = value if syst == 'hull' else -1*value
+                    slots[codes[detail] + str(slotcount)][syst] = value if syst == 'hull' else -1 * value
         return slots
+
+    def check_system_slots(self, slots={}):
+        if slots == {}:
+            slots = self.count_system_slots()
+        if any([sum(x.values()) < 0 for x in slots.values()]):
+            print("ВНИМАНИЕ! На корпусе не хватает слотов под детали для выбранных корректировочных функций!")
+            return False
+        return True
 
     def cmd_system_slots(self):
         slots = self.count_system_slots()
         lst = [["Система"] + sorted(slots.keys())]
-        for syst in sorted(self.systems.keys(), key=lambda x: x!='hull'):
-            lst += [[node_names[syst]] + [slots[detail].get(syst,0) for detail in lst[0][1:]]]
+        for syst in sorted(self.systems.keys(), key=lambda x: x != 'hull'):
+            lst += [[node_names[syst]] + [slots[detail].get(syst, 0) for detail in lst[0][1:]]]
         lst += ["="]
-        lst += [["Итого"] + ["sum"]*(len(lst[0])-1)]
+        lst += [["Итого"] + ["sum"] * (len(lst[0]) - 1)]
         table_view(lst, free_space_right=1)
-        if any([sum(x.values()) < 0 for x in slots.values()]):
-            print("ВНИМАНИЕ! На корпусе не хватает слотов под детали для выбранных корректировок!")
-
-
+        self.check_system_slots(slots)
 
     def cmd_system_vector(self, args):
         avail = list(self.freq_vectors.keys()) + ['all']
@@ -87,13 +92,13 @@ class Sync:
         else:
             syst = args[1]
             fv = self.freq_vectors[syst]
-            print(node_names[syst]+": вектор частот ")
+            print(node_names[syst] + ": вектор частот ")
             lst = [["Система", "Вектор частот"], "-"] + [
                 [node_names[sys] + ' ' + self.systems[sys].get('name'), self.mask(fv[sys], fv['total'])]
                 for sys in fv.keys()
                 if sys not in ('total', 'correct', 'result')
             ] + ["=", ["Суммарно", fv['total']]]
-            if len(fv.get('correct','')) > 0:
+            if len(fv.get('correct', '')) > 0:
                 lst += [["Корректировка", fv.get('correct')], ["Итого", fv.get('result')]]
 
         table_view(lst)
@@ -163,7 +168,7 @@ class Sync:
         if not func:
             return
         vector = get_func_vector(func)
-        if vector == "0"*16:
+        if vector == "0" * 16:
             functext = ""
         self.corrections[syst] = functext
         fvs = self.freq_vectors[syst]
@@ -176,7 +181,7 @@ class Sync:
                 vector
             ))
         else:
-            print(node_names[syst]+": корректирующая функция сброшена")
+            print(node_names[syst] + ": корректирующая функция сброшена")
         self.slots[syst] = count_elements(functext)
 
     def cmd_correct_system(self, args):
@@ -196,12 +201,14 @@ class Sync:
         for sys, sysdata in self.freq_vectors.items():
             self.freq_vectors[sys]['total'] = self.xor(sysdata.values())
 
-    def show_corrections(self, systems = []):
+    def show_corrections(self, systems=[]):
         if systems == []:
             systems = self.freq_vectors.keys()
         for syst in systems:
             if self.corrections.get(syst) is None:
-                print(node_names[syst] + ": корректирующая функция не установлена. Введите correct {} <текст функции>, чтобы ее установить".format(syst))
+                print(node_names[
+                          syst] + ": корректирующая функция не установлена. Введите correct {} <текст функции>, чтобы ее установить".format(
+                    syst))
             else:
                 print("{}: корректирующая функция {} (частотный вектор {})".format(
                     node_names[syst],
@@ -210,7 +217,9 @@ class Sync:
                 ))
 
     def cmd_save(self):
-        print("Данные сохранены")
+        if self.check_system_slots():
+            pass  # Отправить данные в БД
+            print("Данные сохранены")
 
     def terminal(self):
         while True:
