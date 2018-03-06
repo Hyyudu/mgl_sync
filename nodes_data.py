@@ -16,6 +16,17 @@ param_names = {
     "heat_sync": "Теплоотвод",
 }
 
+desync_functions = {
+    "march_engine": {
+        "thrust": lambda vect: 5 * vect[::2].count('1'),
+        "thrust_rev": lambda vect: 25 * vect[0:3].count('1'),
+        "thrust_acc": lambda vect: 5 * vect[3:8].count('1'),
+        "thrust_rev_acc": lambda vect: 25 * vect[8:11].count('1'),
+        "heat_capacity": lambda vect: 10 * vect[11:16].count('1'),
+        "heat_sync": lambda vect: 5 * vect[1::2].count('1'),
+    }
+}
+
 node_params = {
     123: {
         "type": "hull",
